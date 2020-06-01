@@ -1,0 +1,4 @@
+# Ignoring Visual-Studio-specific directories and files
+
+.vs/
+out/
