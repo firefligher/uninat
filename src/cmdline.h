@@ -35,6 +35,12 @@ struct uninat_cmdline {
 
     /** The execution mode of this UniNAT instance. */
     enum uninat_cmdline_mode execution_mode;
+
+    /**
+     * Flag: If enabled, as many operations shall tell about themselves as
+     *       possible.
+     */
+    int verbose;
 };
 
 /**

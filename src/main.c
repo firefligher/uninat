@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 #include "cmdline.h"
+#include "queue_worker.h"
 #include "signal_worker.h"
 #include "table.h"
 
@@ -33,6 +34,7 @@ int main(int argc, char *argv[]) {
     sigset_t signal_mask;
     pthread_t signal_thread;
     struct uninat_signal_worker_params signal_thread_args;
+    struct uninat_queue_worker queue_worker;
 
     /*
      * Cleaning the two uninat_table entries manually. This ensures that we
@@ -81,10 +83,27 @@ int main(int argc, char *argv[]) {
 
     pthread_create(&signal_thread, NULL, &uninat_signal_worker_loop, &signal_thread_args);
 
-    while (1) {
-        pause();
+    /* Setting up the queue worker. */
+
+    if (uninat_queue_worker_initialize(
+        &queue_worker,
+        __cmd_args.queue_number,
+        &__current_table,
+        __cmd_args.execution_mode,
+        __cmd_args.verbose) == 0) {
+        pthread_cancel(signal_thread);
+        uninat_table_cleanup(&__table_1);
+        uninat_table_cleanup(&__table_2);
+        uninat_cmdline_cleanup(&__cmd_args);
+        return EXIT_FAILURE;
     }
 
+    while (uninat_queue_worker_process(&queue_worker))
+        continue;
+
+    uninat_queue_worker_cleanup(&queue_worker);
+    uninat_table_cleanup(&__table_1);
+    uninat_table_cleanup(&__table_2);
     uninat_cmdline_cleanup(&__cmd_args);
     
     return EXIT_SUCCESS;

@@ -12,4 +12,4 @@ add_executable (UniNAT ${UniNAT_SOURCES})
 
 # Linking libraries
 
-target_link_libraries(UniNAT pthread)
+target_link_libraries(UniNAT pthread netfilter_queue nfnetlink)

@@ -9,7 +9,8 @@
 static struct option long_options[] = {
     { "table-file", required_argument, NULL, 't' },
     { "queue",      required_argument, NULL, 'q' },
-    { "mode",       required_argument, NULL, 'm' }
+    { "mode",       required_argument, NULL, 'm' },
+    { "verbose",    no_argument,       NULL, 'v' }
 };
 
 #define MODE_BUF_LENGTH 16
@@ -23,7 +24,8 @@ int uninat_cmdline_parse(struct uninat_cmdline *dst, int argc, char *argv[]) {
 
     /* Iterating over the parsed arguments. */
 
-    while ((v = getopt_long(argc, argv, "t:q:m:", long_options, &idx)) != -1) {
+    while ((v = getopt_long(
+        argc, argv, "t:q:m:v", long_options, &idx)) != -1) {
         size_t optarg_len, mode_buf_len, i;
         char mode_buf[MODE_BUF_LENGTH];
 
@@ -92,6 +94,10 @@ int uninat_cmdline_parse(struct uninat_cmdline *dst, int argc, char *argv[]) {
                     optarg);
                 return 0;
             }
+            break;
+
+        case 'v':
+            dst->verbose = 1;
             break;
 
         default:
