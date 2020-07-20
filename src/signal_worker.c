@@ -1,5 +1,6 @@
 #include "signal_worker.h"
 
+#include <stddef.h>
 #include <pthread.h>
 #include <signal.h>
 
