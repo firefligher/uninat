@@ -26,7 +26,7 @@ int uninat_table_read(struct uninat_table *dst, FILE *src_stream) {
         return 0;
     }
 
-    dst->__flags = UNINAT_TABLE_FLAG_ENTRIES_ALLOCATED;
+    dst->__flags |= UNINAT_TABLE_FLAG_ENTRIES_ALLOCATED;
     max_entries = MALLOC_BLOCK_ELEMENTS;
 
     /* Iterating until reading fails */
