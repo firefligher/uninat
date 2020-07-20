@@ -10,22 +10,12 @@
 
 #define MALLOC_BLOCK_ELEMENTS   256
 
-int uninat_table_read(struct uninat_table *dst, int src_fd) {
-    FILE *src_file;
+int uninat_table_read(struct uninat_table *dst, FILE *src_stream) {
     size_t max_entries;
 
     /* Cleaning the table structure */
 
     memset(dst, 0, sizeof(struct uninat_table));
-
-    /* Converting src_fd to a stream pointer */
-
-    src_file = fdopen(src_fd, "r");
-
-    if (src_file == NULL) {
-        fprintf(stderr, "err:\tCannot convert file descriptor to stream!\n");
-        return 0;
-    }
 
     /* Allocating memory for the table entries */
 
@@ -33,7 +23,6 @@ int uninat_table_read(struct uninat_table *dst, int src_fd) {
 
     if (dst->entries == NULL) {
         fprintf(stderr, "err:\tFailed allocating memory\n");
-        fclose(src_file);
         return 0;
     }
 
@@ -48,7 +37,7 @@ int uninat_table_read(struct uninat_table *dst, int src_fd) {
         /* TODO: Improve parsing (comments) */
 
         result = fscanf(
-            src_file,
+            src_stream,
             " %hhu.%hhu.%hhu.%hhu/%hhu %hhu.%hhu.%hhu.%hhu/%hhu ",
             
             ((char *)(&dst->entries[dst->entry_count].original_addr) + 0),
@@ -92,7 +81,6 @@ int uninat_table_read(struct uninat_table *dst, int src_fd) {
             if (new_entries == NULL) {
                 fprintf(stderr, "err:\tReallocating memory failed!\n");
                 
-                fclose(src_file);
                 free(dst->entries);
                 dst->__flags &= ~UNINAT_TABLE_FLAG_ENTRIES_ALLOCATED;
                 
@@ -102,8 +90,6 @@ int uninat_table_read(struct uninat_table *dst, int src_fd) {
             dst->entries = new_entries;
         }
     }
-
-    fclose(src_file);
 
     return 1;
 }
