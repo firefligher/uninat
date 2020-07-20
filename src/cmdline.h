@@ -3,15 +3,38 @@
 
 #define UNINAT_CMDLINE_FLAG_TABLE_FILE_ALLOCATED    0x01
 
-struct uninat_cmdline {
-    /* (Internal) */
-    int _flags;
+enum uninat_cmdline_mode {
+    /**
+     * Specifies that the target UniNAT instance handles packets at iptable's
+     * PREROUTING state.
+     *
+     * The address translation rule for the source/destination host address is
+     * determined by the IPv4 source address of the handled packet.
+     */
+    UNINAT_CMDLINE_MODE_PREROUTING = 0x00,
 
-    /* Path to the mapping table configuration file. (heap) */
+    /**
+     * Specifies that the target UniNAT instance handles packets at iptable's
+     * POSTROUTING state.
+     *
+     * The address translation rule for the source/destination host address is
+     * determined by the IPv4 destination address of the handled packet.
+     */
+    UNINAT_CMDLINE_MODE_POSTROUTING
+};
+
+struct uninat_cmdline {
+    /** (Internal) */
+    int __flags;
+
+    /** Path to the mapping table configuration file. (heap) */
     char *table_file;
 
-    /* NFQUEUE queue number */
+    /** NFQUEUE queue number */
     int queue_number;
+
+    /** The execution mode of this UniNAT instance. */
+    enum uninat_cmdline_mode *execution_mode;
 };
 
 /**

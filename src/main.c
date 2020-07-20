@@ -5,6 +5,7 @@
 #include <signal.h>
 #include <unistd.h>
 
+#include "cmdline.h"
 #include "signal_worker.h"
 
 static void __refresh_configuration(void *);
@@ -12,7 +13,17 @@ static void __refresh_configuration(void *);
 int main(int argc, char *argv[]) {
     sigset_t signal_mask;
     pthread_t signal_thread;
+    struct uninat_cmdline cmd_args;
     struct uninat_signal_worker_params signal_thread_args;
+
+    /* Parsing the command-line arguments */
+
+    if (uninat_cmdline_parse(&cmd_args, argc, argv) == 0) {
+        fprintf(stderr, "err:\tFailed parsing the command-line arguments!\n");
+        return EXIT_FAILURE;
+    }
+
+    uninat_cmdline_cleanup(&cmd_args);
 
     /*
      * It is important that we configure the main thread to discard any
