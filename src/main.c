@@ -51,6 +51,16 @@ int main(int argc, char *argv[]) {
     }
 
     /*
+     * Reading the table configuration file for the first name.
+     *
+     * NOTE: It is required that this takes place before the signal thread has
+     *       been spawned as otherwise those operations would need to be
+     *       synchronized.
+     */
+
+    __refresh_config(NULL);
+
+    /*
      * It is important that we configure the main thread to discard any
      * incoming signals (that we are allowed to ignore) before we spawn other
      * threads.
