@@ -5,8 +5,15 @@
 #include <signal.h>
 #include <unistd.h>
 
+/* open */
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 #include "cmdline.h"
 #include "signal_worker.h"
+#include "table.h"
 
 static void __refresh_configuration(void *);
 
@@ -15,6 +22,7 @@ int main(int argc, char *argv[]) {
     pthread_t signal_thread;
     struct uninat_cmdline cmd_args;
     struct uninat_signal_worker_params signal_thread_args;
+    struct uninat_table table;
 
     /* Parsing the command-line arguments */
 
@@ -22,6 +30,8 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "err:\tFailed parsing the command-line arguments!\n");
         return EXIT_FAILURE;
     }
+
+    uninat_table_read(&table, open(cmd_args.table_file, O_RDONLY));
 
     uninat_cmdline_cleanup(&cmd_args);
 

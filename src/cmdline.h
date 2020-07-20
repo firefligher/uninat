@@ -34,7 +34,7 @@ struct uninat_cmdline {
     int queue_number;
 
     /** The execution mode of this UniNAT instance. */
-    enum uninat_cmdline_mode *execution_mode;
+    enum uninat_cmdline_mode execution_mode;
 };
 
 /**
