@@ -392,7 +392,8 @@ static int __worker_callback(
 
     fprintf(
         stderr,
-        "warn:\tNo matching entry found for address: %s, dropping packet %d!",
+        "warn:\tNo matching entry found for address: %s, dropping packet "
+            "%d!\n",
         ipv4_addr,
         pkt_id);
 
