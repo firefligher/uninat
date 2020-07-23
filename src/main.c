@@ -98,8 +98,8 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    while (uninat_queue_worker_process(&queue_worker))
-        continue;
+    while (1)
+        uninat_queue_worker_process(&queue_worker);
 
     uninat_queue_worker_cleanup(&queue_worker);
     uninat_table_cleanup(&__table_1);

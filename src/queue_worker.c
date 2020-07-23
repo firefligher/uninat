@@ -12,6 +12,7 @@
 #include <unistd.h>
 
 #include <libnetfilter_queue/libnetfilter_queue.h>
+#include <libnetfilter_queue/libnetfilter_queue_ipv4.h>
 
 #include "queue_worker.h"
 #include "mapping.h"
@@ -372,6 +373,13 @@ static int __worker_callback(
                 src_addr,
                 dst_addr);
         }
+
+        /*
+         * Since we modified the IPv4 header, we need to update the its
+         * checksum.
+         */
+
+        nfq_ip_set_checksum(ip_hdr);
 
         /* Finally, accepting the packet. */
 
