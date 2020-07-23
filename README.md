@@ -46,12 +46,12 @@ the load on multiple instances of UniNAT.
 The following command-line parameters are available and may be used when
 launching another UniNAT-process.
 
-| Parameter                         | Shortcut                    | Description                                                                                               |
-|:---------------------------------:|:---------------------------:|:----------------------------------------------------------------------------------------------------------|
-| `--table-file <path>`             | `-t<path>`                  | *Required.* Specifies the path to the table file.                                                         |
-| `--queue <number>`                | `-q<number>`                | *Required.* Specifies the iptables NFQUEUE number.                                                        |
-| `--mode {PREROUTING/POSTROUTING}` | `-m{PREROUTING/POSTROUTING} | *Required.* Whether the NAT is performed by the source (PREROUTING) or destination (POSTROUTING) address. |
-| `--verbose`                       | `-v`                        | Increases the number of details that will be logged to the output (decreases performance).                |
+| Parameter                         | Shortcut                     | Description                                                                                               |
+|:---------------------------------:|:----------------------------:|:----------------------------------------------------------------------------------------------------------|
+| `--table-file <path>`             | `-t<path>`                   | *Required.* Specifies the path to the table file.                                                         |
+| `--queue <number>`                | `-q<number>`                 | *Required.* Specifies the iptables NFQUEUE number.                                                        |
+| `--mode {PREROUTING/POSTROUTING}` | `-m{PREROUTING/POSTROUTING}` | *Required.* Whether the NAT is performed by the source (PREROUTING) or destination (POSTROUTING) address. |
+| `--verbose`                       | `-v`                         | Increases the number of details that will be logged to the output (decreases performance).                |
 
 ### Signals
 
