@@ -31,8 +31,8 @@ static struct uninat_table __table_1, __table_2;
 static void __refresh_config(void *unused);
 
 int main(int argc, char *argv[]) {
-    sigset_t signal_mask;
     pthread_t signal_thread;
+    struct sigaction signal_action;
     struct uninat_signal_worker_params signal_thread_args;
     struct uninat_queue_worker queue_worker;
 
@@ -53,6 +53,26 @@ int main(int argc, char *argv[]) {
     }
 
     /*
+     * It is important that we configure the main thread to block any incoming
+     * signals (that we are allowed to ignore) before we spawn other threads.
+     * Otherwise they will inherit the initial signal configuration.
+     *
+     * NOTE: We handle the incoming signals in the signal_worker thread.
+     */
+
+    signal_action.sa_handler = SIG_IGN;
+    signal_action.sa_flags = SA_RESTART;
+    sigfillset(&signal_action.sa_mask);
+
+    if (sigaction(SIGUSR1, &signal_action, NULL) == -1) {
+        fprintf(stderr, "err:\tCannot ignore SIGUSR1!\n");
+        uninat_cmdline_cleanup(&__cmd_args);
+        return EXIT_FAILURE;
+    }
+
+    pthread_sigmask(SIG_BLOCK, &signal_action.sa_mask, NULL);
+
+    /*
      * Reading the table configuration file for the first name.
      *
      * NOTE: It is required that this takes place before the signal thread has
@@ -63,17 +83,7 @@ int main(int argc, char *argv[]) {
     __refresh_config(NULL);
 
     /*
-     * It is important that we configure the main thread to discard any
-     * incoming signals (that we are allowed to ignore) before we spawn other
-     * threads.
-     * Otherwise they will inherit the initial signal configuration.
-     */
-
-    sigfillset(&signal_mask);
-    pthread_sigmask(SIG_BLOCK, &signal_mask, NULL);
-
-    /*
-     * Spawning the signal worker that will trigger the configuration
+     * Spawning the signal worker that will trigger the configuration   
      * refreshing.
      */
 
