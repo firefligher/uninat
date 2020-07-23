@@ -7,12 +7,17 @@
 #include <arpa/inet.h>
 #include <linux/ip.h>
 #include <linux/netfilter.h>
+#include <linux/tcp.h>
+#include <linux/udp.h>
+#include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
 
 #include <libnetfilter_queue/libnetfilter_queue.h>
 #include <libnetfilter_queue/libnetfilter_queue_ipv4.h>
+#include <libnetfilter_queue/libnetfilter_queue_tcp.h>
+#include <libnetfilter_queue/libnetfilter_queue_udp.h>
 
 #include "queue_worker.h"
 #include "mapping.h"
@@ -34,8 +39,15 @@ static void __format_ipv4_addr_be(
     uint32_t addr_be,
     size_t dst_length);
 
-/** The maximum size of a IPv4 packet header is 60 bytes/octets. */
-#define COPY_BUFFER_SIZE        256
+/**
+ * This is the size of the buffer that will be used for the copied packet
+ * data.
+ *
+ * Since NAT requires the recalculation of multiple checksums, including those
+ * of TCP and UDP (and we need the whole packet for this operation), this size
+ * also defines the maximum size of any translated packet.
+ */
+#define COPY_BUFFER_SIZE        1500
 
 /* The maximum length of an IPv4 address */
 #define IPV4_ADDR_MAX_LENGTH    15
@@ -327,6 +339,10 @@ static int __worker_callback(
     for (mapping_idx = 0;
         mapping_idx < (*wkr_data->table_ptr)->entry_count;
         mapping_idx++) {
+        void *layerIII_payload;
+        struct tcphdr *tcp_hdr;
+        struct udphdr *udp_hdr;
+
         /* Getting a pointer to the current mapping instance */
 
         mapping = &(*wkr_data->table_ptr)->entries[mapping_idx];
@@ -380,6 +396,99 @@ static int __worker_callback(
          */
 
         nfq_ip_set_checksum(ip_hdr);
+
+        /**
+         * Also, depending on the ISO/OSI Layer IV protocol, we need to update
+         * the protocol-specific checksum (only, if it depends on the contents
+         * of the IPv4 header).
+         *
+         * At the moment the following protocols are supported and handled
+         * correctly:
+         *  - ICMPv4
+         *  - TCP
+         *  - UDP
+         *  - Any other Layer IV protocol whose transfered information does not
+         *    depend on the IPv4 header at all (requires whitelisting in the
+         *    following switch-case-construction).
+         *
+         * (A list of common and partially exotic protocols can be found here:
+         *  https://en.wikipedia.org/wiki/List_of_IP_protocol_numbers, offical
+         *  page: https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml)
+         *
+         */
+
+        layerIII_payload = (void *)(payload + ip_hdr->ihl * 4);
+
+        switch (ip_hdr->protocol) {
+        case IPPROTO_ICMP:
+            /*
+             * Good news: ICMPv4 does not require any further modification of
+             *            the payload since its checksum is calculated
+             *            independently of the IPv4 header.
+             */
+            break;
+
+        case IPPROTO_TCP:
+            tcp_hdr = (struct tcphdr *)layerIII_payload;
+
+            if (wkr_data->verbose) {
+                fprintf(
+                    stderr,
+                    "info:\tPacket %d is TCP, checksum: %d\n",
+                    pkt_id,
+                    ntohl(tcp_hdr->check));
+            }
+
+            nfq_tcp_compute_checksum_ipv4(tcp_hdr, ip_hdr);
+
+            if (wkr_data->verbose) {
+                fprintf(
+                    stderr,
+                    "info:\tUpdated TCP checksum of packet %d: %d\n",
+                    pkt_id,
+                    ntohl(tcp_hdr->check));
+            }
+
+            break;
+
+        case IPPROTO_UDP:
+            udp_hdr = (struct udphdr *)layerIII_payload;
+
+            if (wkr_data->verbose) {
+                fprintf(
+                    stderr,
+                    "info:\tPacket %d is UDP, checksum: %d\n",
+                    pkt_id,
+                    ntohl(udp_hdr->check));
+            }
+
+            /*nfq_udp_compute_checksum_ipv4(udp_hdr, ip_hdr);*/
+
+            if (wkr_data->verbose) {
+                fprintf(
+                    stderr,
+                    "info:\tUpdated UDP checksum of packet %d: %d\n",
+                    pkt_id,
+                    ntohl(udp_hdr->check));
+            }
+
+            break;
+
+        default:
+            fprintf(
+                stderr,
+                "warn:\tUnsupported Layer IV protocol with id: %d, dropping "
+                    "packet %d!\n",
+                ip_hdr->protocol,
+                pkt_id);
+
+            return nfq_set_verdict(
+                qh,
+                pkt_id,
+                NF_DROP,
+                payload_len,
+                (const unsigned char *)payload);
+        }
 
         /* Finally, accepting the packet. */
 
