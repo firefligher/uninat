@@ -50,7 +50,7 @@ launching another UniNAT-process.
 |:---------------------------------:|:---------------------------:|:----------------------------------------------------------------------------------------------------------|
 | `--table-file <path>`             | `-t<path>`                  | *Required.* Specifies the path to the table file.                                                         |
 | `--queue <number>`                | `-q<number>`                | *Required.* Specifies the iptables NFQUEUE number.                                                        |
-| `--mode {PREROUTING/POSTROUTING}` | `-m{PREROUTING|POSTROUTING} | *Required.* Whether the NAT is performed by the source (PREROUTING) or destination (POSTROUTING) address. |
+| `--mode {PREROUTING/POSTROUTING}` | `-m{PREROUTING/POSTROUTING} | *Required.* Whether the NAT is performed by the source (PREROUTING) or destination (POSTROUTING) address. |
 | `--verbose`                       | `-v`                        | Increases the number of details that will be logged to the output (decreases performance).                |
 
 ### Signals
