@@ -4,11 +4,14 @@ project ("UniNAT")
 
 # Collecting the sources files
 
-file(GLOB_RECURSE UniNAT_SOURCES ${PROJECT_SOURCE_DIR}/src *.c *.h)
+file(GLOB UniNAT_HEADERS ${PROJECT_SOURCE_DIR}/src/*.h)
+file(GLOB UniNAT_SOURCES ${PROJECT_SOURCE_DIR}/src/*.c)
+
+set(UniNAT_ALL_SOURCES ${UniNAT_HEADERS} ${UniNAT_SOURCES})
 
 # Adding the executable
 
-add_executable (UniNAT ${UniNAT_SOURCES})
+add_executable (UniNAT ${UniNAT_ALL_SOURCES})
 
 # Linking libraries
 
